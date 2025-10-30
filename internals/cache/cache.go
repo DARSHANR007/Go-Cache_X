@@ -12,16 +12,20 @@ type Item struct {
 }
 
 type Cache struct {
-	data map[string]Item
-	mu   sync.RWMutex
+	data          map[string]Item
+	mu            sync.RWMutex
+	cleanupPeriod time.Duration
+	stopCleanUp   chan struct{} //empty channel to notify
 }
 
 // Constructor of cache
-func NewCache() *Cache {
+func NewCache(cleanupPeriod time.Duration) *Cache {
 
-	return &Cache{
-		data: make(map[string]Item),
+	c := &Cache{
+		data: make(map[string]Item), cleanupPeriod: cleanupPeriod, stopCleanUp: make(chan struct{}),
 	}
+
+	return c
 
 }
 
@@ -71,4 +75,33 @@ func (c *Cache) DeleteCache(key string) {
 	defer c.mu.Lock()
 	delete(c.data, key)
 
+}
+
+func (c *Cache) autoCleanUp() []string {
+	c.mu.Lock()
+	defer c.mu.Unlock()
+
+	currTime := time.Now().Unix()
+	var deletedKeys []string
+
+	for key, item := range c.data {
+		// check if item has an expiration and is expired
+		if item.Expiration > 0 && item.Expiration <= currTime {
+			deletedKeys = append(deletedKeys, key)
+			delete(c.data, key)
+		}
+	}
+
+	return deletedKeys
+}
+
+func (c *Cache) autoExpiration() {
+
+	heartbeat := time.NewTicker(c.cleanupPeriod)
+	defer heartbeat.Stop()
+
+}
+
+func (c *Cache) stopCleanup() {
+	close(c.stopCleanUp)
 }
