@@ -40,7 +40,7 @@ func (c *Cache) Set(value interface{}, key string, ttl time.Duration) {
 
 }
 
-func (c *Cache) getItem(key string) (*interface{}, bool) {
+func (c *Cache) GetItem(key string) (*interface{}, bool) {
 
 	c.mu.RLock()
 	defer c.mu.RUnlock()
