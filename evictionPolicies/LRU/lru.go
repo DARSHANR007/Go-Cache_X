@@ -26,7 +26,7 @@ func (c *Cache) Get(key string) (interface{}, bool) {
 	return nil, false
 }
 
-func (c *Cache) Set(key string, value interface{}) bool {
+func (c *Cache) Put(key string, value interface{}) bool {
 
 	if node, found := c.items[key]; found { //update, set new
 		node.value = value
